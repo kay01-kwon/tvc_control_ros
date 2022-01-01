@@ -41,10 +41,11 @@ tvc_test::tvc_test()
     cout<<P_b_right<<endl;
 
     cout<<"Initialize Rotation matrix"<<endl;
-    cout<<"--RotM"<<endl;
     RotM<<1,0,0,
         0,1,0,
         0,0,1;
+    cout<<"--RotM"<<endl;
+    cout<<RotM<<endl;
 
     cout<<"\n";
     cout<<"\n";
@@ -83,10 +84,11 @@ void tvc_test::InverseKinematics(double &phi, double &theta)
 tvc_test::~tvc_test()
 {
     cout<<"Destructor"<<endl;
-    cout<<"1.Node Destruction"<<endl;
-    nh.~NodeHandle();
-    cout<<"2.Roll Pitch Subscriber Destruction"<<endl;
+
     roll_pitch_subscriber.~Subscriber();
-    cout<<"3. Des Pos Publisher Destruction"<<endl;
     des_pos_publisher.~Publisher();
+
+    cout<<"\n";
+    cout<<"\n";
+    
 }
