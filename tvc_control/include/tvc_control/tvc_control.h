@@ -13,8 +13,11 @@ using std::endl;
 
 using lm4075e_msgs::Int32;
 using tvc_control::rollpitch;
+using Eigen::Vector3d;
+using Eigen::Matrix3d;
 
-const double Length2Count = 1000.0/46.0; // 1000 count = 46 mm
+const double Length2Count = 1000.0/0.0460; // 1000 count = 0.046 m
+const double Length_init = 0.243; // Length at min stroke = 0.243 m
 
 class tvc_test{
 
@@ -24,8 +27,8 @@ class tvc_test{
     tvc_test();
     
     // Desired Roll Pitch Callback Function
-    void CallbackDesRollPitch(rollpitch & rp_des);
-    void InverseKinematics(double &roll, double &pitch);
+    void CallbackDesRollPitch(const rollpitch & rp_des);
+    void InverseKinematics(double &phi, double &theta);
 
     // Destructor
     ~tvc_test();
@@ -34,15 +37,28 @@ class tvc_test{
     ros::NodeHandle nh;
     ros::Subscriber roll_pitch_subscriber;
     ros::Publisher des_pos_publisher;
-    
-    // Parameters
-    double a,r, h0;
-    
+
+    // Parameter setup
+    double x_lower, width_lower, z_lower;
+    double x_upper, width_upper, z_upper;
+
+    // Upper Joint w.r.t lower plate
+    Vector3d P_a_left;
+    Vector3d P_a_right;
+
+    // Lower Joint w.r.t upper plate
+    Vector3d P_b_left;
+    Vector3d P_b_right;
+
     // rp_des data
-    double roll, pitch;
+    double phi, theta;
+    Matrix3d RotM;
 
     // Position(Count) data to publish
     int pos_l, pos_r;
+
+    // Publish data
+    Int32 pos_data;
 
 };
 

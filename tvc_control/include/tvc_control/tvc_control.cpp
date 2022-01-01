@@ -2,29 +2,82 @@
 
 tvc_test::tvc_test()
 {
+    cout<<"\n";
+    cout<<"\n";
+    
     cout<<"Constructor"<<endl;
-    nh.getParam("a",a);
-    nh.getParam("r",r);
-    nh.getParam("h0",h0);
 
-    nh.subscribe("/des_roll_pitch",1,&tvc_test::CallbackDesRollPitch,this);
+    cout<<"Get Parameter from launch xml file"<<endl;
 
-    cout<<"Width Parameter: "<<a<<endl;
-    cout<<"Thrust to Linear Actuator: "<<r<<endl;
-    cout<<"Initial Height: "<<h0<<endl;
+    nh.getParam("x_lower",x_lower);
+    nh.getParam("width_lower",width_lower);
+    nh.getParam("z_lower",z_lower);
+
+    nh.getParam("x_upper",x_upper);
+    nh.getParam("width_upper",width_upper);
+    nh.getParam("z_upper",z_upper);
+
+    roll_pitch_subscriber = nh.subscribe("/des_roll_pitch",1,&tvc_test::CallbackDesRollPitch,this);
+    des_pos_publisher = nh.advertise<Int32>("/des_pos",1);
+
+    cout<<"*****Joint Info*****"<<endl;
+
+    P_a_left << x_lower, width_lower/2.0, z_lower;
+    P_a_right << x_lower, -width_lower/2.0, z_lower;
+
+    P_b_left << x_upper, width_upper/2.0, z_upper;
+    P_b_right << x_upper, -width_upper/2.0, z_upper;    
+    
+    cout<<"--Lower Joint info: "<<endl;
+    cout<<"----Lower Joint Left: "<<endl;
+    cout<<P_a_left<<endl;
+    cout<<"----Lower Joint Right: "<<endl;
+    cout<<P_a_right<<endl;
+    
+    cout<<"--Upper Joint info: "<<endl;
+    cout<<"----Upper Joint Left: "<<endl;
+    cout<<P_b_left<<endl;
+    cout<<"----Upper Joint Right: "<<endl;
+    cout<<P_b_right<<endl;
+
+    cout<<"Initialize Rotation matrix"<<endl;
+    cout<<"--RotM"<<endl;
+    RotM<<1,0,0,
+        0,1,0,
+        0,0,1;
+
+    cout<<"\n";
+    cout<<"\n";
+    
 }
 
-void tvc_test::CallbackDesRollPitch(rollpitch &rp_des)
-{
-    roll = rp_des.roll;
-    pitch = rp_des.pitch;
 
+void tvc_test::CallbackDesRollPitch(const rollpitch & rp_des)
+{
+    phi = rp_des.roll;
+    theta = rp_des.pitch;
+
+    InverseKinematics(phi,theta);
 
 }
 
-void tvc_test::InverseKinematics(double &roll, double &pitch)
+void tvc_test::InverseKinematics(double &phi, double &theta)
 {
+    // Convention 
+    RotM << cos(phi), sin(theta)*sin(phi), sin(theta)*cos(phi),
+            0, cos(phi), -sin(phi),
+            -sin(theta), cos(theta)*sin(phi), cos(theta)*cos(phi);
 
+    pos_l = (int) Length2Count*sqrt((RotM*P_a_left - P_b_left).dot(RotM*P_a_left - P_b_left));
+    pos_l = pos_l - Length_init*Length2Count;
+
+    pos_r = (int) Length2Count*sqrt((RotM*P_a_right - P_b_right).dot(RotM*P_a_right - P_b_right));
+    pos_r = pos_r - Length_init*Length2Count;
+    
+    pos_data.left_pos = pos_l;
+    pos_data.right_pos = pos_r;
+
+    des_pos_publisher.publish(pos_data);
 }
 
 tvc_test::~tvc_test()
