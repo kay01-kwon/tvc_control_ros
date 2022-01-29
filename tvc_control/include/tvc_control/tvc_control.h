@@ -17,7 +17,7 @@ using Eigen::Vector3d;
 using Eigen::Matrix3d;
 
 const double Length2Count = 1000.0/0.0460; // 1000 count = 0.046 m
-const double Length_init = 0.243; // Length at min stroke = 0.243 m
+const double Length_init = 0.360; // Length at min stroke = 0.243 m
 
 class tvc_test{
 
@@ -29,6 +29,7 @@ class tvc_test{
     // Desired Roll Pitch Callback Function
     void CallbackDesRollPitch(const rollpitch & rp_des);
     void InverseKinematics(double &phi, double &theta);
+    double signum(double & theta_ptr);
 
     // Destructor
     ~tvc_test();
@@ -59,6 +60,8 @@ class tvc_test{
 
     // Publish data
     Int32 pos_data;
+
+    double theta_max;
 
 };
 

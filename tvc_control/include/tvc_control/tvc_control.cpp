@@ -40,12 +40,23 @@ tvc_test::tvc_test()
     cout<<"----Upper Joint Right: "<<endl;
     cout<<P_b_right<<endl;
 
+    cout<<"--Initial Link Length: "<<endl;
+    cout<<Length_init<<endl;
+    
+
     cout<<"Initialize Rotation matrix"<<endl;
     RotM<<1,0,0,
         0,1,0,
         0,0,1;
     cout<<"--RotM"<<endl;
     cout<<RotM<<endl;
+
+    cout<<"--Pitch Max Setup--"<<endl;
+    cout<<"Launch file - degree, convert to radian in the code"<<endl;
+    nh.getParam("theta_max",theta_max);
+    theta_max = theta_max*M_PI/180.0;
+
+    cout<<"----Pitch Max (rad): "<<theta_max<<endl;
 
     cout<<"\n";
     cout<<"\n";
@@ -57,6 +68,9 @@ void tvc_test::CallbackDesRollPitch(const rollpitch & rp_des)
 {
     phi = rp_des.roll;
     theta = rp_des.pitch;
+
+    if ( abs(theta) > theta_max)
+        theta = theta_max*signum(theta);
 
     InverseKinematics(phi,theta);
 
@@ -79,6 +93,16 @@ void tvc_test::InverseKinematics(double &phi, double &theta)
     pos_data.right_pos = pos_r;
 
     des_pos_publisher.publish(pos_data);
+}
+
+double tvc_test::signum(double & theta_ptr)
+{
+    if (theta_ptr > 0.0)
+        return 1.0;
+    
+    if(theta_ptr < 0.0)
+        return -1.0;
+    return 0.0;
 }
 
 tvc_test::~tvc_test()
